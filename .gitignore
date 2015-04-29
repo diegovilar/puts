@@ -1,0 +1,9 @@
+build
+debug
+node_modules
+
+src/**/*.js
+src/**/*.map
+test/**/*.js
+test/**/*.map
+/.idea/workspace.xml

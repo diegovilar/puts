@@ -3,6 +3,7 @@ debug
 node_modules
 
 src/**/*.js
+!src/native.js
 src/**/*.map
 test/**/*.js
 test/**/*.map

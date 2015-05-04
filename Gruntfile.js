@@ -185,7 +185,7 @@ module.exports = function (grunt) {
         'clean:debug',
         'run:debug',
         'uglify:debug',
-        '_mergeDefs:debug',
+        //'_mergeDefs:debug',
         'rename:debug'
     ]);
 

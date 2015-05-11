@@ -1,9 +1,5 @@
-///<reference path="_references.ts"/>
+import {Error} from './native';
 
-module puts {
-
-    export class IOError extends Error {
-        name = 'IOError';
-    }
-
+export class IOError extends Error {
+    name = 'IOError';
 }

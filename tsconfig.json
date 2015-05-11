@@ -1,0 +1,22 @@
+{
+    "compilerOptions": {
+        "declaration": true,
+        "target": "ES5",
+        "module": "commonjs",
+        "noEmitOnError": true,
+        "noImplicitAny": true,
+        "emitDecoratorMetadata": true,
+        "removeComments": false,
+        "sourceMap": true,
+        "preserveConstEnums": true,
+        "outDir": "./debug"
+    },
+    "files": [
+        "./src/json-parse-error.ts",
+        "./src/io-error.ts",
+        "./src/network-error.ts",
+        "./src/http.ts",
+        "./src/main.ts",
+        "./src/test-commonjs.ts"
+    ]
+}

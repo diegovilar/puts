@@ -1,23 +1,31 @@
-declare module puts {
+/**
+ * This module is a workaround to allow native Error constructors
+ * to be treated as classes.
+ * 
+ * The actual implementation in JavaScript just points to the native
+ * constructors.  
+ */
 
-    class Error {
-        name: string;
-        message: string;
-        constructor(message?: string);
-    }
+export declare class Error {
+    name: string;
+    message: string;
+    constructor(message?: string);
+}
 
-    class TypeError extends Error {}
+export declare class TypeError extends Error {
+}
 
-    class RangeError extends Error {}
+export declare class RangeError extends Error {
+}
 
-    class ReferenceError extends Error {}
+export declare class ReferenceError extends Error {
+}
 
-    class SyntaxError extends Error {}
+export declare class SyntaxError extends Error {
+}
 
-    class ParseError extends Error {}
+export declare class EvalError extends Error {
+}
 
-    class EvalError extends Error {}
-
-    class URIError extends Error {}
-
+export declare class URIError extends Error {
 }

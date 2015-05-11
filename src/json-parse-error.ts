@@ -1,9 +1,5 @@
-///<reference path="_references.ts"/>
+import {TypeError} from './native';
 
-module puts {
-
-    export class JSONParseError extends TypeError {
-        name = 'JSONParseError';
-    }
-
+export class JSONParseError extends TypeError {
+    name = 'JSONParseError';    
 }

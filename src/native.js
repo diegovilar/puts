@@ -1,10 +1,11 @@
-var puts;
-(function(puts) {
-    puts.Error = Error;
-    puts.TypeError = TypeError;
-    puts.ReferenceError = ReferenceError;
-    puts.ParseError = ParseError;
-    puts.EvalError = EvalError;
-    puts.URIError = URIError;
-    puts.SyntaxError = SyntaxError;
-})(puts || (puts = {}));
+/**
+ * This module just exports the host's Error constructors.
+ */
+
+exports.Error = Error;
+exports.TypeError = TypeError;
+exports.ReferenceError = ReferenceError;
+exports.RangeError = RangeError;
+exports.EvalError = EvalError;
+exports.URIError = URIError;
+exports.SyntaxError = SyntaxError;

@@ -1,9 +1,11 @@
-///<reference path="_references.ts"/>
+/**
+ * The library man file, exporting everything. 
+ */
 
-///<reference path="io-error.ts"/>
-///<reference path="network-error.ts"/>
-///<reference path="json-parse-error.ts"/>
+export * from './native';
+export * from './io-error';
+export * from './network-error';
+export * from './json-parse-error';
 
-///<reference path="http/http-error.ts"/>
-///<reference path="http/http-not-found-error.ts"/>
-///<reference path="http/factory.ts"/>
+import * as http from './http'
+export {http};

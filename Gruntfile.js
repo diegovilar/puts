@@ -1,18 +1,23 @@
-var utils = require('./build-utils');
-var tsc = 'node_modules\\.bin\\tsc' + (/^win/.test(process.platform) ? '.cmd' : '');
+module.exports = function(grunt) {
 
-module.exports = function (grunt) {
+    var utils = require('./tools/build-utils');
+    var utilsTs = require('./tools/build-utils-ts');
+    var ts = require('typescript');
+    var path = require('path');
 
     var pkg = grunt.file.readJSON('package.json');
+
     var buildTime = new Date();
     var buildTimeString = buildTime.toISOString();
     var version = utils.version.parse(pkg.version);
     var versionString = utils.version.getCacheKey(version);
-    var srcDir = 'src';
-    var testDir = 'test';
-    var debugDir = 'debug';
-    var buildDir = 'build';
-    var distDir = 'dist';
+
+    var srcDir = path.join(__dirname, 'src');
+    var testDir = path.join(__dirname, 'test');
+    var debugDir = path.join(__dirname, 'debug');
+    var buildDir = path.join(__dirname, 'build');
+    var distDir = path.join(__dirname, 'dist');
+    var toolsDir = path.join(__dirname, 'tools');
 
     function generateBanner(target) {
         target = target ? target + ' ' : '';
@@ -48,15 +53,8 @@ module.exports = function (grunt) {
         },
 
         run: {
-            debug: {
-                exec: tsc + ' -d -t ES3 -m commonjs --noImplicitAny --noEmitOnError --preserveConstEnums --sourceMap --out ' +
-                    debugDir + '\\puts-transpiled.js ' +
-                    srcDir + '\\main.ts'
-            },
-            build: {
-                exec: tsc + ' -d -t ES3 -m commonjs --noImplicitAny --noEmitOnError --preserveConstEnums --removeComments --out ' +
-                buildDir + '\\puts.js ' +
-                srcDir + '\\main.ts'
+            compileDebugBrowser: {
+                exec: 'node ' + path.join(toolsDir, 'compile.js')
             }
         },
 
@@ -67,7 +65,7 @@ module.exports = function (grunt) {
                     compress: false,
                     preserveComments: 'all',
                     sourceMap: true,
-                    beautify:true,
+                    beautify: true,
                     banner: generateBanner('DEBUG')
                 },
                 files: {
@@ -97,9 +95,9 @@ module.exports = function (grunt) {
         },
 
         rename: {
-            debug : {
+            debug: {
                 src: debugDir + '/puts-transpiled.d.ts',
-                dest : debugDir + '/puts.d.ts'
+                dest: debugDir + '/puts.d.ts'
             }
         },
 
@@ -119,14 +117,14 @@ module.exports = function (grunt) {
                     // libraries
 
                     // tested code
-                    { pattern: 'debug/**/*.js', watched: false },
-                    { pattern: 'debug/**/*.js.map', watched: false, included: false },
-                    { pattern: 'src/**/*.ts', watched: false, included: false },
+                    {pattern: 'debug/**/*.js', watched: false},
+                    {pattern: 'debug/**/*.js.map', watched: false, included: false},
+                    {pattern: 'src/**/*.ts', watched: false, included: false},
 
                     // test specs
-                    { pattern: 'test/**/*.test.js', watched: false },
-                    { pattern: 'test/**/*.test.ts', watched: false, included: false },
-                    { pattern: 'test/**/*.test.js.map', watched: false, included: false }
+                    {pattern: 'test/**/*.test.js', watched: false},
+                    {pattern: 'test/**/*.test.ts', watched: false, included: false},
+                    {pattern: 'test/**/*.test.js.map', watched: false, included: false}
                 ],
                 exclude: [],
                 preprocessors: {}
@@ -165,8 +163,6 @@ module.exports = function (grunt) {
 
     });
 
-    /// <reference path="../src/native.d.ts" />
-
     grunt.registerTask('_mergeDefs', 'Merge library with native error definitions', function() {
 
         var fs = require('fs');
@@ -177,16 +173,59 @@ module.exports = function (grunt) {
 
         putsContents = putsContents.replace(/\/\/\/\s*<reference\s+path="[^"]*native.d.ts"\s*\/>/, nativeContents);
 
-        fs.writeFileSync(destFile, putsContents, {encoding : 'utf8'});
+        fs.writeFileSync(destFile, putsContents, {encoding: 'utf8'});
+
+    });
+
+    grunt.registerTask('compileDebug', '', function(subtask) {
+
+        if (subtask == 'commonjs') {
+            node();
+        }
+        else if (subtask == 'browser') {
+            browser();
+        }
+        else if (typeof subtask == 'undefined') {
+            node();
+            browser();
+        }
+        else {
+            grunt.fatal('Unknown subtask: ' + subtask);
+        }
+
+        function node() {
+
+            var glob = require('glob');
+            var srcFiles = glob.sync(srcDir + "/**/*.ts");
+
+            utilsTs.compile(srcFiles, {
+                outDir: debugDir,
+                sourceRoot: '../src',
+                declaration: true,
+                noEmitOnError: true,
+                noImplicitAny: true,
+                preserveConstEnums: true,
+                emitDecoratorMetadata: true,
+                sourceMap: true,
+                target: ts.ScriptTarget.ES5,
+                module: ts.ModuleKind.CommonJS
+            });
+
+        }
+
+        function browser() {
+        }
 
     });
 
     grunt.registerTask('debug', [
         'clean:debug',
-        'run:debug',
-        'uglify:debug',
+        'compileDebug:commonjs',
+        'run:compileDebugBrowser'
+        //'run:debug',
+        //'uglify:debug',
         //'_mergeDefs:debug',
-        'rename:debug'
+        //'rename:debug'
     ]);
 
     grunt.registerTask('build', [

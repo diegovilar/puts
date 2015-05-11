@@ -1,4 +1,4 @@
-/**
+/*!
  * This module just exports the host's Error constructors.
  */
 

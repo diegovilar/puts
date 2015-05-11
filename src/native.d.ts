@@ -1,4 +1,4 @@
-/**
+/*!
  * This module is a workaround to allow native Error constructors
  * to be treated as classes.
  * 

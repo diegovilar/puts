@@ -19,6 +19,7 @@
     "grunt-rename": "0.1.4",
     "grunt-run": "0.3.0",
     "grunt-text-replace": "0.4.0",
+    "gulp": "^3.8.11",
     "jasmine-core": "2.2.0",
     "karma": "0.12.31",
     "karma-chrome-launcher": "0.1.7",
@@ -32,6 +33,7 @@
     "semver": "4.3.3",
     "through2": "^0.6.5",
     "tsify": "https://github.com/diegovilar/tsify.git",
-    "typescript": "1.5.0-beta"
+    "typescript": "1.5.0-beta",
+    "yargs": "^3.8.0"
   }
 }

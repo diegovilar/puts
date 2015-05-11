@@ -1,15 +1,17 @@
 {
     "compilerOptions": {
-        "declaration": true,
         "target": "ES5",
         "module": "commonjs",
         "noEmitOnError": true,
         "noImplicitAny": true,
         "emitDecoratorMetadata": true,
+        "preserveConstEnums": true,        
         "removeComments": false,
-        "sourceMap": true,
-        "preserveConstEnums": true,
-        "outDir": "./debug"
+        
+        "!" : "Sobrescrever opcoes abaixo de acordo com o target",
+        "outDir": "./debug",
+        "declaration": false,
+        "sourceMap": false
     },
     "files": [
         "./src/json-parse-error.ts",

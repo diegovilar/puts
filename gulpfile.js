@@ -13,7 +13,6 @@ var sourcemaps = require('gulp-sourcemaps');
 var ts = require("typescript");
 var fs = require('fs');
 var path = require('path');
-var glob = require('multi-glob').glob;
 
 
 
@@ -27,13 +26,13 @@ var buildBrowserDir = './build-browser';
 
 // -- Tasks --
 
-gulp.task('cleanBuild', createCleaner(buildDir + '/*'));
-gulp.task('cleanBrowser', createCleaner(buildBrowserDir + '/*'));
-gulp.task('clean', ['cleanBuild', 'cleanBrowser']);
-gulp.task('build', ['cleanBuild'], build);
+gulp.task('clean-build', createCleaner(buildDir + '/*'));
+gulp.task('clean-browser', createCleaner(buildBrowserDir + '/*'));
+gulp.task('clean', ['clean-build', 'clean-browser']);
+gulp.task('build', ['clean-build'], build);
 gulp.task('watch', ['build'], watch);
-gulp.task('buildBrowser', buildBrowser);
-gulp.task('watchBrowser', watchBrowser);
+gulp.task('build-browser', ['clean-browser'], buildBrowser);
+gulp.task('watch-browser', ['clean-browser'], watchBrowser);
 
 
 

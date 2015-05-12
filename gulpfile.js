@@ -3,11 +3,13 @@
 var gulp = require('gulp');
 var gutil = require('gulp-util');
 var clean = require('gulp-clean');
+var copy = require('gulp-copy');
+var rename = require('gulp-rename');
 var browserify = require('browserify');
 var watchify = require('watchify');
-var gutil = require('gulp-util');
+var uglify = require('gulp-uglify');
 var assign = require('lodash.assign')
-var source = require('vinyl-source-stream');
+var output = require('vinyl-source-stream');
 var buffer = require('vinyl-buffer')
 var sourcemaps = require('gulp-sourcemaps');
 var ts = require("typescript");
@@ -21,6 +23,7 @@ var path = require('path');
 var srcDir = './src';
 var buildDir = './build';
 var buildBrowserDir = './build-browser';
+var tsconfigPath = './tsconfig.json';
 
 
 
@@ -58,7 +61,12 @@ function build(cb) {
     options.sourceMap = true;
     
     // TODO errors?
+    // Compile ts files
     tsc(tsconfig.files, options);
+    
+    // Copy native module
+    gulp.src(srcDir + '/native*')
+        .pipe(copy(buildDir, {prefix: 1}));
     
     cb();
     
@@ -69,12 +77,11 @@ function build(cb) {
  */
 function watch() {
     
-    var tsconfig = parseTypescriptConfig();
-    var files = tsconfig.files.slice(0);
+    var files = parseTypescriptConfig().files;
     
     // We also want to monitor these files
     files.push(srcDir + '/native*');
-    files.push('./tsconfig.json');
+    files.push(tsconfigPath);
     
     gulp.watch(files, function(event) {
         gutil.log('File', gutil.colors.magenta(event.path), gutil.colors.yellow(event.type));
@@ -129,9 +136,11 @@ function bundle(watch) {
     function run() {        
         return bundler
             .bundle()
-            .pipe(source(destFileName))
+            .pipe(output(destFileName))
             .pipe(buffer())
             .pipe(sourcemaps.init({loadMaps: true}))
+                //.pipe(uglify())
+                //.pipe(rename(destFileName.replace(/\.js$/, '-min.js')))
             .pipe(sourcemaps.write('./'))
             .pipe(gulp.dest(buildBrowserDir))
             .on('error', gutil.log.bind(gutil, 'Browserify Error'));
@@ -141,15 +150,13 @@ function bundle(watch) {
     
 }
 
-
-
 /**
  * 
  */
 function parseTypescriptConfig(filePath) {
     
     if (!filePath) {
-        filePath = './tsconfig.json';
+        filePath = tsconfigPath;
     }
     
     return JSON.parse(fs.readFileSync(filePath).toString());

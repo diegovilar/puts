@@ -1,4 +1,5 @@
-declare module "puts" {
+declare module puts {
+    
     class Error {
         name: string;
         message: string;
@@ -34,19 +35,20 @@ declare module "puts" {
     // network-error
     class NetworkError extends IOError {
     }
-}
-
-declare module "puts/http" {
-    import {NetworkError} from "puts";
-
-    class HttpError extends NetworkError {
-        statusCode: number;
-        constructor(statusCode: number, message?: string);
+    
+    module http {
+    
+        class HttpError extends NetworkError {
+            statusCode: number;
+            constructor(statusCode: number, message?: string);
+        }
+    
+        class HttpNotFoundError extends HttpError {
+            constructor(message?: string);
+        }
+    
+        function createFromStatusCode(statusCode: number, message?: string): HttpError;
+        
     }
-
-    class HttpNotFoundError extends HttpError {
-        constructor(message?: string);
-    }
-
-    function createFromStatusCode(statusCode: number, message?: string): HttpError;
+    
 }

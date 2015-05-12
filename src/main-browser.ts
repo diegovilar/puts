@@ -1,4 +1,4 @@
 import * as puts from './main';
 
-(<any> window).puts = puts;
-
+declare var global:any;
+global.puts = puts;

@@ -6,9 +6,8 @@
         "noImplicitAny": true,
         "emitDecoratorMetadata": true,
         "preserveConstEnums": true,        
-        "removeComments": false,
+        "removeComments": false,        
         
-        "!" : "Sobrescrever opcoes abaixo de acordo com o target",
         "outDir": "./debug",
         "declaration": false,
         "sourceMap": false
@@ -18,7 +17,6 @@
         "./src/io-error.ts",
         "./src/network-error.ts",
         "./src/http.ts",
-        "./src/main.ts",
-        "./src/test-commonjs.ts"
+        "./src/main.ts"
     ]
 }

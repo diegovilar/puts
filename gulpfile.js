@@ -1,46 +1,57 @@
 /// <reference path="typings/node/node.d.ts"/>
 
 var gulp = require('gulp');
-var argv = require('yargs').argv;
+var gutil = require('gulp-util');
+var clean = require('gulp-clean');
 var browserify = require('browserify');
-var exorcist = require('exorcist');
+var watchify = require('watchify');
+var gutil = require('gulp-util');
+var assign = require('lodash.assign')
+var source = require('vinyl-source-stream');
+var buffer = require('vinyl-buffer')
+var sourcemaps = require('gulp-sourcemaps');
 var ts = require("typescript");
 var fs = require('fs');
 var path = require('path');
+var glob = require('multi-glob').glob;
+
+
+
+// -- Paths --
 
 var srcDir = './src';
 var buildDir = './build';
-var debugDir = './debug';
+var buildBrowserDir = './build-browser';
+
+
+
+// -- Tasks --
+
+gulp.task('cleanBuild', createCleaner(buildDir + '/*'));
+gulp.task('cleanBrowser', createCleaner(buildBrowserDir + '/*'));
+gulp.task('clean', ['cleanBuild', 'cleanBrowser']);
+gulp.task('build', ['cleanBuild'], build);
+gulp.task('watch', ['build'], watch);
+gulp.task('buildBrowser', buildBrowser);
+gulp.task('watchBrowser', watchBrowser);
+
+
+
+// --
+
+function createCleaner(globs) {
+    return function() {        
+        return gulp.src(globs, {read: false})
+            .pipe(clean({force: true}));
+    }
+}
 
 /**
- * Compiles 
+ * Compiles the project
  */
-gulp.task('compileBundle', function(cb) {
+function build(cb) {
     
-    var entryFile = srcDir + '/main-browser.ts';
-    var destFile = buildDir + '/puts.js';
-    var mapfile = destFile + '.map';    
-  
-    var bundler = browserify(entryFile, {
-        debug: true
-    });
-    
-    var tsoptions = require('./tsconfig.json').compilerOptions;
-    bundler.plugin('tsify', tsoptions);
-    
-    var outStream = fs.createWriteStream(destFile, {encoding: 'utf8'});
-    bundler
-        .bundle()
-        .pipe(exorcist(mapfile))
-        .pipe(outStream);
-  
-    //cb && cb(); 
-  
-});
-
-gulp.task('compileDebug', function(cb) {
-    
-    var tsconfig = require('./tsconfig.json');
+    var tsconfig = parseTypescriptConfig();
     var options = tsconfig.compilerOptions;
     
     options.outDir = buildDir;
@@ -48,12 +59,107 @@ gulp.task('compileDebug', function(cb) {
     options.sourceMap = true;
     
     // TODO errors?
-    tsc(tsconfig.files, tsconfig.compilerOptions);
+    tsc(tsconfig.files, options);
     
-    //cb && cb();
+    cb();
     
-});
+}
 
+/**
+ * 
+ */
+function watch() {
+    
+    var tsconfig = parseTypescriptConfig();
+    var files = tsconfig.files.slice(0);
+    
+    // We also want to monitor these files
+    files.push(srcDir + '/native*');
+    files.push('./tsconfig.json');
+    
+    gulp.watch(files, function(event) {
+        gutil.log('File', gutil.colors.magenta(event.path), gutil.colors.yellow(event.type));
+        gulp.start(['build']);
+    });
+    
+}
+
+/**
+ * Compiles a bundled version of the library for the browser
+ */
+function buildBrowser() {
+    
+    bundle(false);
+  
+}
+
+function watchBrowser() {
+    
+    bundle(true);
+    
+}
+
+function bundle(watch) {
+    
+    var entryFilePath = srcDir + '/main-browser.ts';    
+    var destFileName = 'puts.js';
+    
+    var bundler;
+    
+    var bundlerOptions = {
+        debug: true
+    };
+    
+    if (watch) {
+        bundlerOptions = assign({}, watchify.args, bundlerOptions);
+        bundler = watchify(browserify(entryFilePath, bundlerOptions));
+        bundler.on('log', gutil.log);        
+        bundler.on('update', function(ids) {
+            for (var i = 0; i < ids.length; i++) {
+                gutil.log('Change detected on', gutil.colors.magenta(ids[i]));
+            }
+            return run();
+        });
+    }
+    else {
+        bundler = browserify(entryFilePath, bundlerOptions); 
+    }    
+    
+    bundler.plugin('tsify', parseTypescriptConfig().compilerOptions);        
+    
+    function run() {        
+        return bundler
+            .bundle()
+            .pipe(source(destFileName))
+            .pipe(buffer())
+            .pipe(sourcemaps.init({loadMaps: true}))
+            .pipe(sourcemaps.write('./'))
+            .pipe(gulp.dest(buildBrowserDir))
+            .on('error', gutil.log.bind(gutil, 'Browserify Error'));
+    }
+        
+    return run(); 
+    
+}
+
+
+
+/**
+ * 
+ */
+function parseTypescriptConfig(filePath) {
+    
+    if (!filePath) {
+        filePath = './tsconfig.json';
+    }
+    
+    return JSON.parse(fs.readFileSync(filePath).toString());
+    
+}
+
+/**
+ * 
+ */
 function tsc(fileNames, options) {
     
     var ScriptTarget = {
@@ -69,10 +175,10 @@ function tsc(fileNames, options) {
     };
     
     if (options) {
-        if (options.target) {
+        if (typeof options.target === 'string') {
             options.target = ScriptTarget[options.target.toUpperCase()];
         }
-        if (options.module) {
+        if (typeof options.module === 'string') {
             options.module = ModuleKind[options.module.toUpperCase()];
         }
     }
@@ -80,14 +186,17 @@ function tsc(fileNames, options) {
     var program = ts.createProgram(fileNames, options);
     var emitResult = program.emit();
     var allDiagnostics = ts.getPreEmitDiagnostics(program).concat(emitResult.diagnostics);
+    
     allDiagnostics.forEach(function (diagnostic) {
         var _a = diagnostic.file.getLineAndCharacterOfPosition(diagnostic.start), line = _a.line, character = _a.character;
         var message = ts.flattenDiagnosticMessageText(diagnostic.messageText, '\n');
         throw new Error(diagnostic.file.fileName + " (" + (line + 1) + "," + (character + 1) + "): " + message);
     });
+    
     //var exitCode = emitResult.emitSkipped ? 1 : 0;
     //if (exitCode) {
     //    grunt.log(`Process exiting with code '${exitCode}'.`);
     //}
     //return exitCode;
+    
 }

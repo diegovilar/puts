@@ -5,8 +5,8 @@
         "noEmitOnError": true,
         "noImplicitAny": true,
         "emitDecoratorMetadata": true,
-        "preserveConstEnums": true,        
-        "removeComments": false,        
+        "preserveConstEnums": true,
+        "removeComments": false,
         
         "outDir": "./debug",
         "declaration": false,

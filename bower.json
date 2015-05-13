@@ -1,9 +1,0 @@
-{
-    "name": "puts",
-    "projectName": "Puts",
-    "version": "0.0.8-snapshot",
-    "description": "An error library for TypeScript applications",
-    "private": true,
-    "author": "Diego Vilar <diegovilar@gmail.com>",
-    "readmeFilename": "README.TXT"
-}

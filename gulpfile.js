@@ -8,7 +8,7 @@ var rename = require('gulp-rename');
 var browserify = require('browserify');
 var watchify = require('watchify');
 var uglify = require('gulp-uglify');
-var assign = require('lodash.assign')
+var assign = require('lodash.assign');
 var output = require('vinyl-source-stream');
 var buffer = require('vinyl-buffer')
 var sourcemaps = require('gulp-sourcemaps');
@@ -36,6 +36,7 @@ gulp.task('build', ['clean-build'], build);
 gulp.task('watch', ['build'], watch);
 gulp.task('build-browser', ['clean-browser'], buildBrowser);
 gulp.task('watch-browser', ['clean-browser'], watchBrowser);
+gulp.task('default', ['build', 'build-browser']);
 
 
 
@@ -57,15 +58,17 @@ function build(cb) {
     var options = tsconfig.compilerOptions;
     
     options.outDir = buildDir;
-    options.declaration = true;
+    //options.declaration = true;
     options.sourceMap = true;
+    
+    fs.mkdirSync(buildDir);
     
     // TODO errors?
     // Compile ts files
     tsc(tsconfig.files, options);
     
     // Copy native module
-    gulp.src(srcDir + '/native*')
+    gulp.src(srcDir + '/native.js')
         .pipe(copy(buildDir, {prefix: 1}));
     
     cb();
@@ -133,7 +136,8 @@ function bundle(watch) {
     
     bundler.plugin('tsify', parseTypescriptConfig().compilerOptions);        
     
-    function run() {        
+    function run() {
+        fs.mkdirSync(buildBrowserDir);
         return bundler
             .bundle()
             .pipe(output(destFileName))

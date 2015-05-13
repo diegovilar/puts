@@ -1,10 +1,3 @@
-build
-debug
-node_modules
-
-src/**/*.js
-!src/native.js
-src/**/*.map
-test/**/*.js
-test/**/*.map
-/.idea/workspace.xml
+/build
+/build-browser
+/node_modules

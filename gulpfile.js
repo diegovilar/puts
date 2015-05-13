@@ -2,7 +2,6 @@
 
 var gulp = require('gulp');
 var gutil = require('gulp-util');
-var clean = require('gulp-clean');
 var copy = require('gulp-copy');
 var rename = require('gulp-rename');
 var browserify = require('browserify');
@@ -15,6 +14,8 @@ var sourcemaps = require('gulp-sourcemaps');
 var ts = require("typescript");
 var fs = require('fs');
 var path = require('path');
+var del = require('del');
+var mkdir = require('mkdir-p').sync;
 
 
 
@@ -29,24 +30,34 @@ var tsconfigPath = './tsconfig.json';
 
 // -- Tasks --
 
-gulp.task('clean-build', createCleaner(buildDir + '/*'));
-gulp.task('clean-browser', createCleaner(buildBrowserDir + '/*'));
-gulp.task('clean', ['clean-build', 'clean-browser']);
-gulp.task('build', ['clean-build'], build);
+gulp.task('default', ['build', 'build:browser']);
+gulp.task('clean:build', cleanBuild);
+gulp.task('clean:browser', cleanBuildBrowser);
+gulp.task('clean', ['clean:build', 'clean:browser']);
+gulp.task('build', ['clean:build'], build);
 gulp.task('watch', ['build'], watch);
-gulp.task('build-browser', ['clean-browser'], buildBrowser);
-gulp.task('watch-browser', ['clean-browser'], watchBrowser);
-gulp.task('default', ['build', 'build-browser']);
+gulp.task('build:browser', ['clean:browser'], buildBrowser);
+gulp.task('watch:browser', ['clean:browser'], watchBrowser);
 
 
 
 // --
 
+/**
+ * Returns a cleander task function
+ */
 function createCleaner(globs) {
-    return function() {        
-        return gulp.src(globs, {read: false})
-            .pipe(clean({force: true}));
-    }
+    return function(cb) {
+        del(globs, cb);
+    };
+}
+
+function cleanBuild(cb) {
+    del(buildDir + '/*', cb);
+}
+
+function cleanBuildBrowser(cb) {
+    del(buildBrowserDir + '/*', cb);
 }
 
 /**
@@ -61,17 +72,23 @@ function build(cb) {
     //options.declaration = true;
     options.sourceMap = true;
     
-    fs.mkdirSync(buildDir);
+    mkdir(buildDir);
     
     // TODO errors?
     // Compile ts files
-    tsc(tsconfig.files, options);
-    
-    // Copy native module
-    gulp.src(srcDir + '/native.js')
-        .pipe(copy(buildDir, {prefix: 1}));
-    
-    cb();
+    try {
+        tsc(tsconfig.files, options);
+        
+        // Copy native module
+        gulp.src(srcDir + '/native.js')
+            .pipe(copy(buildDir, {prefix: 1}))
+            .on('error', gutil.log.bind(gutil, 'Copy Error'));
+            
+        cb();
+    }
+    catch (e) {
+        gutil.log(gutil.colors.red('Build error:'), e.toString());
+    }
     
 }
 
@@ -137,7 +154,7 @@ function bundle(watch) {
     bundler.plugin('tsify', parseTypescriptConfig().compilerOptions);        
     
     function run() {
-        fs.mkdirSync(buildBrowserDir);
+        mkdir(buildBrowserDir);
         return bundler
             .bundle()
             .pipe(output(destFileName))

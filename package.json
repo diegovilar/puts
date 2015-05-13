@@ -8,7 +8,7 @@
   "main": "build/main.js",
   "browser": "build-browser/puts.js",
   "scripts": {
-    "install": "gulp build build-browser"
+    
   },
   "devDependencies": {
     "browserify": "10.1.3",

@@ -1,5 +1,5 @@
 {
-  "name": "@diegovilar/puts",
+  "name": "puts",
   "version": "0.1.0",
   "description": "An error library for TypeScript applications",
   "private": true,
@@ -8,8 +8,9 @@
   "main": "build/main.js",
   "browser": "build-browser/puts.js",
   "scripts": {
+    "postinstall": "gulp build build-browser"
   },
-  "devDependencies": {
+  "dependencies": {
     "browserify": "10.1.3",
     "glob": "5.0.5",
     "grunt": "0.4.5",

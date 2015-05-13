@@ -1,5 +1,5 @@
 {
-  "name": "@diegovilar/puts",
+  "name": "puts",
   "version": "0.1.0",
   "description": "An error library for TypeScript applications",
   "private": true,
